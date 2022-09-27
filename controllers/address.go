@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,8 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/net/context"
 )
+
+// "golang.org/x/net/context"
 
 func AddAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -22,7 +24,7 @@ func AddAddress() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		address, err := ObjectIDFromHex(user_id)
+		address, err := primitive.ObjectIDFromHex(user_id)
 		if err != nil {
 			c.IndentedJSON(500, "Internal server error")
 		}
@@ -94,7 +96,7 @@ func EditHomeAddress() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 		filter := bson.D{primitive.E{Key: "_id", Value: userT_id}}
-		update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "address.0.house_name", Value: editaddress.House}, {Key: "address.0.street_name", Value: editaddress.Street}, {Key: "address.0.city_name", Value: editaddress.City}, {Key: "address.0.pin_code", Value: editaddress.Pincode}}}}
+		update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "address.0.house_name", Value: editaddress.House_No}, {Key: "address.0.street_name", Value: editaddress.Street}, {Key: "address.0.city_name", Value: editaddress.City}, {Key: "address.0.pin_code", Value: editaddress.Pincode}}}}
 		_, err = UserCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			c.IndentedJSON(500, "Something went wrong")
@@ -130,7 +132,7 @@ func EditWorkAddress() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 		filter := bson.D{primitive.E{Key: "_id", Value: userT_id}}
-		update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "address.1.house_name", Value: editaddress.House}, {Key: "address.1.street_name", Value: editaddress.Street}, {Key: "address.1.city_name", Value: editaddress.City}, {Key: "address.1.pin_code", Value: editaddress.Pincode}}}}
+		update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "address.1.house_name", Value: editaddress.House_No}, {Key: "address.1.street_name", Value: editaddress.Street}, {Key: "address.1.city_name", Value: editaddress.City}, {Key: "address.1.pin_code", Value: editaddress.Pincode}}}}
 		_, err = UserCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			c.IndentedJSON(500, "Something went wrong")

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/iamatila/go-ecommerce/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +22,7 @@ type SignedDetails struct {
 	jwt.StandardClaims
 }
 
-var UserData *mongo.Collection = database.userData(database.Client, "Users")
+var UserData *mongo.Collection = database.UserData(database.Client, "Users")
 
 var SECRET_KEY = os.Getenv("SECRET_KEY")
 

@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/iamatila/go-ecommerce/database"
 	"github.com/iamatila/go-ecommerce/models"
+	generate "github.com/iamatila/go-ecommerce/tokens"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -107,7 +108,7 @@ func SignUp() gin.HandlerFunc {
 
 		defer cancel()
 
-		c.JSON(http.StatusCreated, "Successfully signed in")
+		c.JSON(http.StatusCreated, "Successfully signed up")
 	}
 }
 
@@ -117,6 +118,7 @@ func Login() gin.HandlerFunc {
 		defer cancel()
 
 		var user models.User
+		var founduser models.User
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
@@ -139,7 +141,7 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, *founduser.User_ID)
+		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID)
 		defer cancel()
 
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
@@ -148,7 +150,23 @@ func Login() gin.HandlerFunc {
 }
 
 func AdminAddProduct() gin.HandlerFunc {
-
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var products models.Product
+		defer cancel()
+		if err := c.BindJSON(&products); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		products.Product_ID = primitive.NewObjectID()
+		_, anyerr := ProductCollection.InsertOne(ctx, products)
+		if anyerr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Not Created"})
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, "Successfully added our Product Admin!!")
+	}
 }
 
 func SearchProduct() gin.HandlerFunc {
@@ -170,9 +188,9 @@ func SearchProduct() gin.HandlerFunc {
 			return
 		}
 
-		defer cursor.Close()
+		defer cursor.Close(ctx)
 
-		if err := cursor.err(); err != nil {
+		if err := cursor.Err(); err != nil {
 			log.Println(err)
 			c.IndentedJSON(400, "Invalid")
 			return
